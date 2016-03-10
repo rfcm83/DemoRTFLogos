@@ -40,17 +40,21 @@ namespace DemoRTFLogos
             const int hmm = 2540;
             const int dpi = 96;
 
-            const string picture = @"\pict\pngblip\picw{0}\pich{1}\picwgoa{2}\pichgoa{3}\hex {4}";
+            const string pictJpg = @"\pict\jpegblip\picw{0}\pich{1}\picwgoa{2}\pichgoa{3}\hex {4}90c28a28a0028a28a0028a28a0028a28a0028a28a0028a28a0028a28a0028a28a0028a28a0028a28a0028a28a0028a28a0028a28a0028a28a0028a28a00fffd9";
+            const string pictPng = @"\pict\pngblip\picw{0}\pich{1}\picwgoa{2}\pichgoa{3}\hex {4}ff308d938e611be8c7443980c92dae25dce197fd3b46cc58b34f32d4b7a5a43d334edbc365bc8bc7ff0b300044bbc9ba180f30320000000049454e44ae426082";
 
             var img = Image.FromFile(path);
+            var image = new FileInfo(path);
 
             var imageString = ConvertToStringBuilder(BitConverter.ToString(File.ReadAllBytes(path)).Replace("-", string.Empty)).ToString();
             var width = Math.Round((Convert.ToDouble(img.Width) / dpi) * hmm);
             var height = Math.Round((Convert.ToDouble(img.Height) / dpi) * hmm);
             var wGoal = Math.Round((Convert.ToDouble(img.Width) / dpi) * twip);
             var hGoal = Math.Round((Convert.ToDouble(img.Height) / dpi) * twip);
-            return "{" + string.Format(picture, width, height, wGoal, hGoal, imageString) + "}";
-
+            var text = image.Extension == ".png"
+                ? string.Format(pictPng, width, height, wGoal, hGoal, imageString)
+                : string.Format(pictJpg, width, height, wGoal, hGoal, imageString);
+            return "{" + text + "}";
         }
 
         private static StringBuilder ConvertToStringBuilder(string text, int maxLen = 128)
@@ -63,7 +67,11 @@ namespace DemoRTFLogos
                 var skip = x * maxLen;
                 var diff = text.Length - (skip + maxLen);
                 var total = maxLen <= diff ? maxLen : diff;
-                sb.AppendLine(text.Substring(skip, total).ToLowerInvariant());
+                var line = text.Substring(skip, total).ToLowerInvariant();
+                if (diff > maxLen)
+                    sb.AppendLine(line);
+                else
+                    sb.Append(line);
             }
             return sb;
         }
